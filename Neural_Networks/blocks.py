@@ -1,33 +1,32 @@
 import math
 
-import torch
-from torch import nn
-import torch.nn.functional as F
-
 import hexagdly
+import torch
+import torch.nn.functional as F
+from torch import nn
 
 from .depthwise_conv import depthwise_conv
 
 
 class BasicBlock(nn.Module):
 
-    def __init__(self, channels, batch_norm=False, hex=True):
+    def __init__(self, channels, batch_norm=False, hex=True, kernel_size=1):
         super().__init__()
         
         before_shortcut_layers = []
 
         if hex: 
-            before_shortcut_layers.append(hexagdly.Conv2d(in_channels=channels, out_channels=channels, kernel_size = 1, bias=False))
+            before_shortcut_layers.append(hexagdly.Conv2d(in_channels=channels, out_channels=channels, kernel_size = kernel_size, bias=False))
         else:
-            before_shortcut_layers.append(nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size = 3, bias=False))
+            before_shortcut_layers.append(nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size = kernel_size, bias=False))
         if batch_norm:
             before_shortcut_layers.append(nn.BatchNorm2d(num_features=channels))
         before_shortcut_layers.append(nn.ReLU())
 
         if hex:
-            before_shortcut_layers.append(hexagdly.Conv2d(in_channels=channels, out_channels=channels, kernel_size = 1, bias=False))
+            before_shortcut_layers.append(hexagdly.Conv2d(in_channels=channels, out_channels=channels, kernel_size = kernel_size, bias=False))
         else:
-            before_shortcut_layers.append(nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size = 3, bias=False))
+            before_shortcut_layers.append(nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size = kernel_size, bias=False))
         
         self.before_shortcut = nn.Sequential(*before_shortcut_layers)
         self.shortcut = nn.Sequential()
@@ -42,6 +41,23 @@ class BasicBlock(nn.Module):
     
 
 ##################################################################################################
+class Trans_Decoder_ValueHead(nn.Module):
+    '''A transformer decoder that outputs a single value'''
+
+    def __init__(self, d_model, n_head=1, n_layer=2):
+        super().__init__()
+
+        decoder_layer = nn.TransformerDecoderLayer(d_model=d_model, nhead=n_head, dim_feedforward=512, batch_first=True)
+        self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=n_layer)
+        self.linear = nn.Linear(d_model, 1)
+
+    def forward(self, tgt, x):
+
+        x = self.transformer_decoder(tgt, x)
+        x = self.linear(x)
+        return x
+    
+
 
 class Reduce_ValueHead(nn.Module):
     '''Several conv layers that progressively reduce the amount of filters,
@@ -82,7 +98,16 @@ class Reduce_ValueHead(nn.Module):
 
 
     def forward(self, x):
+        """     
+        np_array = x.numpy()
+        print(x.size())
+
+        with open("x_in", 'w') as f:
+            for row in np_array:
+                f.write(" ".join(map(str, row))) 
+        """
         out = self.layers(x)
+        #print(out)
         return out
     
 # ------------------------------ #

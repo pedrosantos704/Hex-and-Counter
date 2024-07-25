@@ -44,6 +44,10 @@ class Torch_NN():
         self.model = self.model.to(self.device)
     
     def inference(self, state, training, iters_to_do=2, interim_thought=None):
+        seed = 0
+        torch.manual_seed(seed)
+        
+        #print("inference, state:",state.size())
 
         if not training:
             self.model.eval()

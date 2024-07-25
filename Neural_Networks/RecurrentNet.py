@@ -2,9 +2,9 @@
 Adapted from the Deepthinking repository.
 """
 import math
-import torch
-import hexagdly
 
+import hexagdly
+import torch
 from torch import nn
 
 from .blocks import *

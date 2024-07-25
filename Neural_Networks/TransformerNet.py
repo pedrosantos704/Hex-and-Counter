@@ -16,7 +16,7 @@ from .blocks import *
 
 class TransformerNet(nn.Module):
 
-    def __init__(self, in_channels, policy_channels, kernel_size=1, num_filters=256, num_heads=2,hex=True, convolution=True):
+    def __init__(self, in_channels, policy_channels, kernel_size=1, num_filters=256, num_heads=1, num_layers=1, hex=True, recall=True):
 
         super().__init__()
         self.recurrent = False
@@ -27,49 +27,36 @@ class TransformerNet(nn.Module):
         self.in_channels = in_channels
         self.policy_channels = policy_channels
 
-        self.convolution = convolution
+        self.recall = recall
 
-        if self.convolution:
-            self.embed_dim = num_filters
+
+        if self.recall:
+            self.conv_input_dim = in_channels*2
         else:
-            self.embed_dim = in_channels
+            self.conv_input_dim = in_channels
 
 
-        if self.convolution:
-            num_layers = 1
-            # General Module
-            general_layer_list = []
-            if hex:
-                general_layer_list.append(hexagdly.Conv2d(kernel_size=self.kernel_size, in_channels=self.in_channels, out_channels=self.num_filters, bias=False))
-            else:
-                general_layer_list.append(nn.Conv2d(kernel_size=self.kernel_size, in_channels=self.in_channels, out_channels=self.num_filters, bias=False,padding=1))
-            general_layer_list.append(nn.ELU())
-            
-            for i in range(num_layers):
-                if hex:
-                    general_layer_list.append(hexagdly.Conv2d(kernel_size=self.kernel_size, in_channels=self.num_filters, out_channels=self.num_filters, bias=False))
-                else:
-                    general_layer_list.append(nn.Conv2d(kernel_size=self.kernel_size, in_channels=self.num_filters, out_channels=self.num_filters, bias=False,padding=1))
-                general_layer_list.append(nn.ELU())
-            
-            
-            self.general_module = nn.Sequential(*general_layer_list)
+        # !! in_channels must be divisible by num_heads
+        transformer_layer = nn.TransformerEncoderLayer(d_model=in_channels, nhead=num_heads, dim_feedforward=512, batch_first=True)
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer=transformer_layer, num_layers=num_layers)
+
             
 
-        # !! embed_dim must be divisible by num_heads
-        transformer_layer = nn.TransformerEncoderLayer(d_model=self.embed_dim, nhead=num_heads, dim_feedforward=512, batch_first=True)
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer=transformer_layer, num_layers=1)
+
+        # LSTM Head
+        self.lstm_hidden_dim = policy_channels
+        self.lstm_layers = 4
+
+
+        self.lstm = nn.LSTM(input_size=in_channels, hidden_size=self.lstm_hidden_dim, num_layers=self.lstm_layers, batch_first=True)
+
 
         # Policy Head
-        self.policy_head = Conv_PolicyHead(self.embed_dim, policy_channels, hex=hex)
-
-        self.reinforcements_head = Conv_PolicyHead(self.embed_dim, policy_channels, hex=hex)
-        self.movement_head = Conv_PolicyHead(self.embed_dim, policy_channels, hex=hex)
-        self.combat_head = Conv_PolicyHead(self.embed_dim, policy_channels, hex=hex) 
+        #self.policy_head = Conv_PolicyHead(self.embed_dim, policy_channels, hex=hex)
 
 
         # Value Head
-        self.value_head = Reduce_ValueHead(self.embed_dim, hex=hex)
+        self.value_head = Reduce_ValueHead(in_channels, hex=hex)
 
 
     
@@ -79,12 +66,13 @@ class TransformerNet(nn.Module):
     def forward(self, x):
         heigth, width = x.size()[-2], x.size()[-1]
 
-        if self.convolution:
-            x = self.general_module(x)
+        print("input",x.size())
+        
 
+        input = x
 
         # each word corresponds to a board location
-        x = torch.reshape(x,(-1,self.embed_dim, heigth*width))
+        x = torch.reshape(x,(-1,self.in_channels, heigth*width))
         x = torch.permute(x, (0, 2, 1)) 
         
         input_data = x.detach().clone()
@@ -93,14 +81,29 @@ class TransformerNet(nn.Module):
         
         #print_attention_info(self.transformer_encoder, input_data)                
 
-        x = torch.reshape(x,(-1,self.embed_dim,heigth,width))
 
+        if self.recall:
+            print("before recall:",x.size())
+            x = torch.cat((input, x), 1)
+            print("after recall:",x.size())
+
+
+            
+
+        lstm_out, (h_n, c_n) = self.lstm(x) # lstm_out shape: (batch_size, sequence_length, lstm_hidden_dim)
+        print(lstm_out.size())
         
-        policy = self.policy_head(x)
+        lstm_out = lstm_out.reshape(lstm_out.size(0), -1)
+        print(lstm_out.size())
+        lstm_out = torch.reshape(lstm_out,(-1,self.policy_channels,heigth,width))
+        print(lstm_out.size())
+
+        policy = lstm_out
+
+        x = torch.reshape(x,(-1,self.in_channels,heigth,width))
         value = self.value_head(x)
-
-        #policy = torch.sum(policy, dim=2) #!!! hardcoded for four in a row !!!
         
+                
         return policy, value
     
 

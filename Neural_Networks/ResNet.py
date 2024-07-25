@@ -1,21 +1,23 @@
-import numpy as np
-import hexagdly
-import torch
 import math
-import time
 import os
+import time
 
+import hexagdly
+import numpy as np
+import torch
 from torch import nn
 
-from .blocks import * 
+from .blocks import *
 
 
 class ResNet(nn.Module):
 
-    def __init__(self, in_channels, policy_channels, kernel_size=1, num_filters=256, num_blocks=4, batch_norm=False, policy_head="conv", value_head="reduce", value_activation="relu", hex=True):
+    def __init__(self, in_channels, policy_channels, kernel_size=1, num_filters=256, num_blocks=4, block_kernels=[], batch_norm=False, policy_head="conv", value_head="reduce", value_activation="relu", hex=True):
 
         super().__init__()
         self.recurrent = False
+
+        self.kernel_size = kernel_size
 
         # Input Module
         input_layers = []
@@ -32,8 +34,15 @@ class ResNet(nn.Module):
 
         # Processing module
         residual_blocks_list = []
-        for b in range(num_blocks):
-            residual_blocks_list.append(BasicBlock(num_filters, batch_norm=batch_norm, hex=hex))
+        if block_kernels == []:
+            for b in range(num_blocks):
+                residual_blocks_list.append(BasicBlock(num_filters, batch_norm=batch_norm, hex=hex, kernel_size=kernel_size))
+        else:
+            if len(block_kernels) != num_blocks:
+                print("Number of blocks and length of list of block kernel sizes must be the same in ResNet")
+                exit()
+            for b in range(num_blocks):
+                residual_blocks_list.append(BasicBlock(num_filters, batch_norm=batch_norm, hex=hex, kernel_size=block_kernels[b]))
 
         self.residual_blocks = nn.Sequential(*residual_blocks_list)
 
@@ -62,12 +71,17 @@ class ResNet(nn.Module):
     def forward(self, x):
         projection = self.input_block(x)
 
+        #print_kernels(self.input_block)
+
         processed_data = self.residual_blocks(projection)
 
         policy = self.policy_head(processed_data)
         value = self.value_head(processed_data)
         
         return policy, value
+    
+def print_kernels(conv_net):
+    print(conv_net[0])
     
 
 
