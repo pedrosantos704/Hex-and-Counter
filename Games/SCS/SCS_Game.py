@@ -1,25 +1,21 @@
+import io
 import math
+import os
+import time
+from collections import Counter
+from copy import copy, deepcopy
+from enum import Enum
+
 import numpy as np
 import torch
-import time
 import yaml
-import io
-import os
-
-from copy import copy, deepcopy
-
-from enum import Enum
-from collections import Counter
 from termcolor import colored
 
-from Games.SCS.Unit import Unit
-from Games.SCS.Tile import Tile
-from Games.SCS.Terrain import Terrain
-
-from Games.SCS.SCS_Renderer import SCS_Renderer
-
 from Games.Game import Game
-
+from Games.SCS.SCS_Renderer import SCS_Renderer
+from Games.SCS.Terrain import Terrain
+from Games.SCS.Tile import Tile
+from Games.SCS.Unit import Unit
 
 '''
 From the hexagly source code, this is how the board is converted
@@ -647,7 +643,7 @@ class SCS_Game(Game):
                         continue
             break
             
-            
+
         if(done):
             self.terminal = True
             self.terminal_value = self.check_terminal()
@@ -718,6 +714,7 @@ class SCS_Game(Game):
         return  
 
     def check_terminal(self):
+        
         p1_captured_points = 0
         p2_captured_points = 0
         victory_p1 = self.victory_points[0]
@@ -793,11 +790,43 @@ class SCS_Game(Game):
         self.attacked_units[unit.player-1].append(unit)
         self.moved_units[unit.player-1].remove(unit)
 
-    def set_simple_game_state(self, turn, unit_ids_list, unit_position_list, player_list):
+    def set_simple_game_state(self, turn, unit_ids_list, unit_position_list, player_list, victory_points_locations = None, n_vp = [0,0]):
         self.lenght = 0 # artificial game states don't have previous actions
 
         if len(unit_ids_list) != len(unit_position_list) or len(unit_ids_list) != len(player_list):
             raise Exception("set_simple_game_state()\nAll lists must have the same length.")
+        
+        if victory_points_locations != None:
+            self.victory_points = [[],[]]        
+
+
+            for player in range(2):
+                game_list = self.victory_points[player]
+                for point in victory_points_locations[player]:
+
+                    if len(point) != 2:
+                        raise Exception(str(point) + " --> Points must have two coordenates. (set_simple_game_state)")
+                        
+                    elif point in game_list:
+                        raise Exception(str(point) + " --> Repeated point. Cannot have two points with the same coordenates. (set_simple_game_state)")
+                        
+                    else:
+                        vp_tuple = (point[0], point[1])
+                        game_list.append(vp_tuple)        
+
+            self.n_vp = n_vp
+
+            for i in range(len(self.board)):
+                for j in range(len(self.board[0])):
+                    self.board[i][j].victory = 0
+
+            for point in self.victory_points[0]:
+                self.board[point[0]][point[1]].victory = 1
+                self.n_vp[0] += 1
+
+            for point in self.victory_points[1]:
+                self.board[point[0]][point[1]].victory = 2
+                self.n_vp[1] += 1
 
         # Create the units and place them at the specified position
         for i in range(len(unit_ids_list)):
@@ -1343,10 +1372,13 @@ class SCS_Game(Game):
         terrain_list = [atack_modifiers, defense_modifiers, movement_costs]
         stack_list.extend(terrain_list)
     
+        
+
         core_list = [p1_victory, p2_victory, p1_reinforcements, p2_reinforcements, p1_units, p2_units,
                      target_tile_plane, attackers, sub_phase_planes, turn_plane, player_plane]
         stack_list.extend(core_list)
         new_state = torch.concat(stack_list, dim=0)
+
 
         state_image = torch.unsqueeze(new_state, 0) # add batch size to the dimensions
 
@@ -1675,6 +1707,9 @@ class SCS_Game(Game):
         for k in range(self.columns):
             string += "==="
         string += "==\n"
+
+        string += str(self.victory_points)
+        string += str(self.n_vp)
 
         # Collumn numbers and top
         first_line_numbers = "\n     "

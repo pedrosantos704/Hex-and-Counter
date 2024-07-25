@@ -1,11 +1,11 @@
 ###
 Initialization:
-  network_name: test_net_load
-  load_checkpoint: True
+  network_name: gatEnc_xypos_boards4x5x
+  load_checkpoint: False
 
   Checkpoint:
-    cp_network_name: test_net_load
-    iteration_number: "auto"
+    cp_network_name: gatEnc_xypos
+    iteration_number: 256
     keep_optimizer: True
     keep_scheduler: True
     load_buffer: True
@@ -20,7 +20,7 @@ Running:
   early_softmax_moves: 0
   early_softmax_exploration: 0.5
   early_random_exploration: 0.5
-  training_steps: 2000
+  training_steps: 256
 
   Sequential:
     num_games_per_type_per_step: 16
@@ -38,7 +38,7 @@ Cache:
 
 ###
 Saving:
-  save_frequency: 10
+  save_frequency: 2
   storage_frequency: 1
   save_buffer: True
 
@@ -66,8 +66,8 @@ Plotting:
 
 ###
 Recurrent Options:
-  train_iterations: [8]
-  pred_iterations: [8]
+  train_iterations: [8, 8]
+  pred_iterations: [8, 8]
   test_iterations: 8
   alpha: 0.0
   
@@ -83,10 +83,10 @@ Learning:
   learning_method: samples
 
   Samples:
-    batch_size: 128
-    num_samples: 32
+    batch_size: 64
+    num_samples: 64
     with_replacement: True
-    late_heavy: True
+    late_heavy: False
 
   Epochs:
     batch_size: 2048

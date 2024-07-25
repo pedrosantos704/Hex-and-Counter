@@ -8,12 +8,34 @@ Test:
     render: "interactive" 
 
 
+  Data:
+    Variable:
+      changing_agent: 2
+      changing_parameter:
+        name: checkpoints #checkpoints | iterations | none
+        Range:
+          first: 0
+          last: 256
+          step: 4
+    Runs:
+      num_runs: 1
+      num_games_per_run: 50
+
+    Testers:
+      new_testers: True
+      num_testers: 4
+
+
 ###
 Agents:
+
   p1_agent:
+    agent_type: random
+
+  p2_agent:
     agent_type: policy
 
-    #search_config_path: Configs/Search/test_search_config.yaml
+    search_config_path: Configs/Search/Examples/SCS_example_search_config.yaml
     
     Cache:
       cache_choice: keyless
@@ -21,15 +43,14 @@ Agents:
       keep_updated: False
 
     Network:
-      recurrent_iterations: 6
+      recurrent_iterations: 4
       load_checkpoint: True
 
       Checkpoint:
-        cp_network_name: test_net_load
-        cp_number: 1000
+        cp_network_name: gatEnc_xypos_2
+        cp_number: 64
 
-  p2_agent:
-    agent_type: random
+
 
 
 

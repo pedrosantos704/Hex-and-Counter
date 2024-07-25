@@ -1,14 +1,14 @@
 import os
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
-import time
-import ray
 import math
 import sys
-
+import time
 from copy import copy, deepcopy
-
 from enum import Enum
+
+import pygame
+import ray
 
 
 class Color(Enum):
@@ -389,6 +389,7 @@ class SCS_Renderer():
                         screen.blit(value_block, value_rect)
 
                 # VICTORY POINTS
+
                 vp = tile.victory
                 p1_path = "Games/SCS/Images/blue_star.png"
                 p2_path = "Games/SCS/Images/red_star.png"

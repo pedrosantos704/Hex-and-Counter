@@ -1,58 +1,59 @@
-import sys
-import os
-import psutil
-import time
-import random
-import math
-import pickle
-import ray
-import copy
 import argparse
+import copy
 import glob
+import math
+import os
+import pickle
+import random
 import re
-import torch
+import sys
+import time
 
-import numpy as np
 import matplotlib.pyplot as plt
-
+import numpy as np
+import psutil
+import ray
+import torch
+from progress.bar import ChargingBar
 from ray.runtime_env import RuntimeEnv
 from scipy.special import softmax
 
-from Neural_Networks.Torch_NN import Torch_NN
-from Neural_Networks.MLP_Network import MLP_Network as MLP_Net
-
-from Neural_Networks.ConvNet import ConvNet
-from Neural_Networks.ResNet import ResNet
-from Neural_Networks.RecurrentNet import RecurrentNet
-
-from Games.SCS.SCS_Game import SCS_Game
-from Games.SCS.SCS_Renderer import SCS_Renderer
-from Games.Tic_Tac_Toe.tic_tac_toe import tic_tac_toe
-
-from AlphaZero import AlphaZero
-from Tester import Tester
-from RemoteTester import RemoteTester
-
-from Gamer import Gamer
-from ReplayBuffer import ReplayBuffer
-from RemoteStorage import RemoteStorage
-
+import Interactive
 from Agents.Generic.MctsAgent import MctsAgent
 from Agents.Generic.PolicyAgent import PolicyAgent
 from Agents.Generic.RandomAgent import RandomAgent
 from Agents.SCS.GoalRushAgent import GoalRushAgent
-
+from AlphaZero import AlphaZero
+from Gamer import Gamer
+from Games.SCS.SCS_Game import SCS_Game
+from Games.SCS.SCS_Renderer import SCS_Renderer
+from Games.Tic_Tac_Toe.tic_tac_toe import tic_tac_toe
+from Neural_Networks.ConvNet import ConvNet
+from Neural_Networks.FullTransformer import FullTransformer
+from Neural_Networks.JustConv import JustConv
+from Neural_Networks.LSTMNet import LSTMNet
+from Neural_Networks.MLP_Network import MLP_Network as MLP_Net
+from Neural_Networks.RecurrentNet import RecurrentNet
+from Neural_Networks.ResNet import ResNet
+from Neural_Networks.Torch_NN import Torch_NN
+from Neural_Networks.TransConvNet import TransConvNet
+from Neural_Networks.TransformerNet import TransformerNet
+from Neural_Networks.TransLSTMNet import TransLSTMNet
+from Neural_Networks.TransParallel import TransParallel
+from Neural_Networks.TransPosPar import TransPosPar
+from Neural_Networks.TransGNN.Model import TransGNN
+from Neural_Networks.Gnn import Gnn
+from Neural_Networks.Gnn_encoder import EncoderGnn
+from RemoteStorage import RemoteStorage
+from RemoteTester import RemoteTester
+from ReplayBuffer import ReplayBuffer
+from Tester import Tester
 from TestManager import TestManager
-
-from progress.bar import ChargingBar
+from Utils.Caches.DictCache import DictCache
+from Utils.Caches.KeylessCache import KeylessCache
+from Utils.general_utils import *
 from Utils.Progress_Bars.PrintBar import PrintBar
 
-from Utils.general_utils import *
-
-from Utils.Caches.KeylessCache import KeylessCache
-from Utils.Caches.DictCache import DictCache
-
-import Interactive
 
 def main():
     pid = os.getpid()
@@ -120,21 +121,40 @@ def main():
             case 1: # SCS_Example
                 
                 game_class = SCS_Game
-                game_args_list = [["Games/SCS/Game_configs/r_unbalanced_config_5.yml"]]
+                game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
                 game = game_class(*game_args_list[0])
 
-                alpha_config_path="Configs/Config_Files/Training/small_test_training_config.yaml"
-                search_config_path="Configs/Config_Files/Search/test_search_config.yaml"
+                alpha_config_path="Configs/Training/Examples/SCS_example_training_config.yaml"
+                search_config_path="Configs/Search/Examples/SCS_example_search_config.yaml"
 
-                state_set = create_r_unbalanced_state_set(game)
+                state_set = create_solo_state_set(game)
 
                 in_channels = game.get_state_shape()[0]
                 policy_channels = game.get_action_space_shape()[0]
-                model = RecurrentNet(in_channels, policy_channels, 256, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
+                #model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, hex=True)
+                #model = RecurrentNet(in_channels, policy_channels, in_channels, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
+                #model = ResNet(in_channels, policy_channels, num_filters=128, num_blocks=2, kernel_size=1, policy_head="conv", value_head="reduce", hex=True)
+                #model = MLP_Net(out_features=192)
+                #model = TransformerNet(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, kernel_size=1, recall=False)
+                #model = TransConvNet(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=True)
+                #model = TransLSTMNet(in_channels, policy_channels, num_heads=1, num_trans_layers=1, num_LSTM_layers=4,hex=True, recall=False)
+                #model = JustConv(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=False)
+                #model = TransParallel(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
+                #model = TransPosPar(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
+                #model = FullTransformer(in_channels, policy_channels, num_heads=1, num_enc_layers=1, num_dec_layers=1, pre_trans_layer=False, hex=True)
+                #model = TransGNN()
+                #model = Gnn(in_channels, policy_channels)
+                model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
+
+
+                #initialize_parameters(model)
+                #initialze_transformer(model)
+                #initialize_xavier(model)
+                initialize_all(model)
 
                 print("\n")
                 context = start_ray_local(log_to_driver)
-                alpha_zero = AlphaZero(game_class, game_args_list, alpha_config_path, search_config_path, model=model, state_set=state_set)
+                alpha_zero = AlphaZero(game_class, game_args_list, alpha_config_path, search_config_path, model=model) #, state_set=state_set)
                 alpha_zero.run()
 
                 
@@ -152,8 +172,8 @@ def main():
 
                 in_channels = game.get_state_shape()[0]
                 policy_channels = game.get_action_space_shape()[0]
-                model = RecurrentNet(in_channels, policy_channels, 256, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
-                #model = ResNet(in_channels, policy_channels, num_filters=256, num_blocks=12, policy_head="conv", value_head="reduce", hex=True)
+                #model = RecurrentNet(in_channels, policy_channels, 256, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
+                model = ResNet(in_channels, policy_channels, num_filters=256, num_blocks=12, policy_head="conv", value_head="reduce", hex=True)
 
                 initialize_parameters(model)
 
@@ -208,17 +228,19 @@ def main():
         match args.testing_preset:
             case 0: # Render Example
                 game_class = SCS_Game
-                game_args = ["Games/SCS/Game_configs/randomized_config_5.yml"]
+                game_args = ["Games/SCS/Game_configs/solo_soldier_config_6.yml"]
 
                 test_config = "Configs/Testing/Examples/render_config.yaml"
                 test_manager = TestManager(game_class, game_args)
                 results = test_manager.test_from_config(test_config_path=test_config)
+                print(results)
+                plot_variable(results)
 
 
 
             case 1: # Extrapolation Test Example
                 game_class = SCS_Game
-                game_args = ["Games/SCS/Game_configs/randomized_config_5.yml"]
+                game_args = ["Games/SCS/Game_configs/solo_soldier_config_4.yml"]
 
                 test_config = "Configs/Testing/Examples/extrapolation_config.yaml"
                 test_manager = TestManager(game_class, game_args)
@@ -338,11 +360,38 @@ def main():
     
     return
 
+def initialize_all(model):
+    for name, param in model.named_parameters():
+        print(name)
+        if "bias" in name:
+            torch.nn.init.zeros_(param.data)
+        elif param.data.dim() >= 2:
+            torch.nn.init.xavier_uniform_(param)
+        else:
+            #torch.nn.init.normal_(param)
+            torch.nn.init.uniform_(param.data)
+
+
 def initialize_parameters(model):
     for name, param in model.named_parameters():
         if ".weight" not in name:
             #torch.nn.init.uniform_(param, a=-0.04, b=0.04)
             torch.nn.init.xavier_uniform_(param)
+
+def initialze_transformer(model):
+    for name, param in model.named_parameters():
+        if 'weight' in name and param.data.dim() == 2:
+            torch.nn.init.kaiming_uniform_(param)
+
+def initialize_xavier(model):
+    for m in model.modules():
+        for name, param in m.named_parameters():
+            if 'weight' in name and param.data.dim() == 2:
+                torch.nn.init.xavier_uniform_(param.data)
+            elif 'bias' in name and param.data.dim() == 2:
+                torch.nn.init.zeros_(param.data)
+
+
 
 ##########################################################################
 # ----------------------------               --------------------------- #
@@ -471,38 +520,49 @@ def create_solo_state_set(game):
 
     state_set = []
     game.reset_env()
-    game.set_simple_game_state(7, [1], [(0,0)], [2])
-    state_set.append(game.generate_state_image())
-    #renderer.display_board(game)
-
-    game.reset_env()
-    game.set_simple_game_state(7, [1], [(0,3)], [2])
-    state_set.append(game.generate_state_image())
-    #renderer.display_board(game)
-
-    game.reset_env()
-    game.set_simple_game_state(7, [1], [(1,2)], [2])
-    state_set.append(game.generate_state_image())
-    #renderer.display_board(game)
-
-    game.reset_env()
-    game.set_simple_game_state(7, [1], [(2,3)], [2])
-    state_set.append(game.generate_state_image())
-    #renderer.display_board(game)
-
-    game.reset_env()
-    game.set_simple_game_state(7, [1], [(2,4)], [2])
-    state_set.append(game.generate_state_image())
-    #renderer.display_board(game)
-
-    game.reset_env()
-    game.set_simple_game_state(7, [1], [(4,4)], [2])
+    game.set_simple_game_state(7, [1], [(3,3)], [2], [[(3,3)],[(1,1)]])
     state_set.append(game.generate_state_image())
     #renderer.display_board(game)
     
+    game.reset_env()
+    game.set_simple_game_state(7, [1], [(0,0)], [2], [[(0,0)],[(1,1)]])
+    state_set.append(game.generate_state_image())
+    #renderer.display_board(game)
+
+    game.reset_env()
+    game.set_simple_game_state(7, [1], [(0,0)], [2], [[(3,3)],[(1,1)]])
+    state_set.append(game.generate_state_image())
+    #renderer.display_board(game)
+
+    game.reset_env()
+    game.set_simple_game_state(7, [1], [(3,3)], [2], [[(0,0)],[(1,1)]])
+    state_set.append(game.generate_state_image())
+    #renderer.display_board(game)
 
     game.reset_env()
     return state_set
+
+def plot_variable(data):
+    x = [item[0] for item in data]  
+    y1 = [item[1][0] for item in data]  
+    y2 = [item[1][1] for item in data] 
+    y3 = [item[1][2] for item in data]  
+
+   
+    plt.figure(figsize=(10, 6)) 
+    plt.plot(x, y1, color='g', label='P1 win ratio') 
+    plt.plot(x, y2, color='r', label='P2 win ratio') 
+    plt.plot(x, y3, color='y', label='Draw')
+
+    plt.xlabel('X Axis')  
+    plt.ylabel('Y Axis') 
+    plt.title('Plot')  
+    plt.legend()  
+
+
+    plt.show() 
+
+
 
 ##########################################################################
 # ----------------------------               --------------------------- #

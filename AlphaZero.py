@@ -1,50 +1,42 @@
-import ray
-import torch
-import math
-import random
-import pickle
-import time
-import os
-import io
-import sys
-import psutil
-import resource
+import bisect
 import glob
+import io
+import math
+import os
+import pickle
+import random
 import re
-import bisect 
-
-import ruamel
-from ruamel.yaml import YAML
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-from torch import nn
+import resource
+import sys
+import time
 from copy import deepcopy
 from random import randrange
+
+import matplotlib.pyplot as plt
 import more_itertools
-
-from Neural_Networks.Torch_NN import Torch_NN
-
-from Gamer import Gamer
-from ReplayBuffer import ReplayBuffer
-from RemoteStorage import RemoteStorage
-from RemoteTester import RemoteTester
-from TestManager import TestManager
-from RemoteTestManager import RemoteTestManager
-
-from Agents.Generic.PolicyAgent import PolicyAgent
-from Agents.Generic.MctsAgent import MctsAgent
-from Agents.Generic.RandomAgent import RandomAgent
-
-from Utils.loss_functions import *
-from Utils.general_utils import *
-from Utils.Progress_Bars.PrintBar import PrintBar
-
+import numpy as np
+import psutil
+import ray
+import ruamel
+import torch
 from progress.bar import ChargingBar
 from progress.spinner import PieSpinner
+from ruamel.yaml import YAML
+from torch import nn
 
-
+from Agents.Generic.MctsAgent import MctsAgent
+from Agents.Generic.PolicyAgent import PolicyAgent
+from Agents.Generic.RandomAgent import RandomAgent
+from Gamer import Gamer
+from Neural_Networks.Torch_NN import Torch_NN
+from RemoteStorage import RemoteStorage
+from RemoteTester import RemoteTester
+from RemoteTestManager import RemoteTestManager
+from ReplayBuffer import ReplayBuffer
+from TestManager import TestManager
+from Utils.general_utils import *
+from Utils.loss_functions import *
+from Utils.Progress_Bars.PrintBar import PrintBar
 
 
 class AlphaZero():
@@ -517,6 +509,7 @@ class AlphaZero():
             search_config["Exploration"]["epsilon_random_exploration"] = random_exploration
 
         total_games = self.num_game_types * num_games_per_type
+        print("total games:",total_games)
         bar = PrintBar(text, total_games, 15)
         for i in range(len(self.game_args_list)):
             game_args = self.game_args_list[i]
@@ -871,23 +864,59 @@ class AlphaZero():
     
         else:
             states, targets, indexes = list(zip(*batch))
-            batch_input = torch.cat(states, 0)
-            batch_size = len(indexes)
-            outputs = self.latest_network.inference(batch_input, True, train_iterations)
-            value_loss, policy_loss, combined_loss = self.calculate_loss(outputs, targets, batch_size,
-                                                                        policy_loss_function, value_loss_function, normalize_policy)
-        
+
+            total_size = len(indexes)
+
+            list_by_size = {}
+            for i in range(len(states)):
+                #print(len(state[0][0]))
+                size = len(states[i][0][0])
+                if size not in list_by_size:
+                    list_by_size[size] = []
+                list_by_size[size].append([states[i], targets[i], indexes[i]])                
+
+            
+            outputs_by_size = []
+            targets_by_size = []
+            indexes_by_size = []
+            for state_group in list_by_size:
+                batch_by_size = tuple(i[0] for i in list_by_size[state_group])
+                batch_by_size = torch.cat(batch_by_size, 0) 
+
+                outputs_i = self.latest_network.inference(batch_by_size, True, train_iterations)  
+
+                outputs_by_size += [outputs_i]
+                targets_by_size += [tuple(i[1] for i in list_by_size[state_group])]
+                indexes_by_size += [tuple(i[2] for i in list_by_size[state_group])]
+
+            outputs_by_size = tuple(outputs_by_size)
+            targets_by_size = tuple(targets_by_size)  
+
+
+            #batch_input = torch.cat(states, 0)            
+            #outputs = self.latest_network.inference(batch_input, True, train_iterations)
+
+            value_loss, policy_loss, combined_loss = self.calculate_loss(outputs_by_size, targets_by_size, total_size, policy_loss_function, value_loss_function, normalize_policy)
+            
+            #batch_input = torch.cat(states, 0)
+            #batch_size = len(indexes)
+            #outputs = self.latest_network.inference(batch_input, True, train_iterations)
+            #value_loss, policy_loss, combined_loss = self.calculate_loss_correct(outputs, targets, batch_size,
+            #                                                            policy_loss_function, value_loss_function, normalize_policy)
+            
+            #print(value_loss==value_loss_c, policy_loss==policy_loss_c, combined_loss==combined_loss_c)
+            # !! compare the tesnors of combined loss
+       
         
         loss = combined_loss
 
         loss.backward()
         self.optimizer.step()
-        self.scheduler.step()
-        
+        self.scheduler.step()        
 
         return value_loss.item(), policy_loss.item(), combined_loss.item()
     
-    def calculate_loss(self, outputs, targets, batch_size, policy_loss_function, value_loss_function, normalize_policy):
+    def calculate_loss_correct(self, outputs, targets, batch_size, policy_loss_function, value_loss_function, normalize_policy):
         target_values, target_policies = list(zip(*targets))
     
         predicted_policies, predicted_values = outputs
@@ -895,6 +924,7 @@ class AlphaZero():
         policy_loss = 0.0
         value_loss = 0.0
         combined_loss = 0.0
+
 
         for i in range(batch_size):
             
@@ -905,8 +935,11 @@ class AlphaZero():
             predicted_policy = predicted_policies[i]
             predicted_policy = torch.flatten(predicted_policy)
 
+
             policy_loss += policy_loss_function(predicted_policy, target_policy)
             value_loss += value_loss_function(predicted_value, target_value)
+
+
             
         # Policy loss is "normalized" by log(num_actions), since cross entropy's expected value grows with log(target_size)
         target_size = len(targets)
@@ -936,6 +969,65 @@ class AlphaZero():
             raise Exception("Nan value found when calculatin loss.")
 
         return value_loss, policy_loss, combined_loss
+    
+    def calculate_loss(self, outputs_by_size, targets_by_size, total_size, policy_loss_function, value_loss_function, normalize_policy):
+            
+        
+        policy_loss = 0.0
+        value_loss = 0.0
+        combined_loss = 0.0        
+        
+        #print("num sizes:", len(outputs_by_size), len(targets_by_size), "total_size", total_size, "lens:",len(targets_by_size[0]),  len(targets_by_size[1]), len(outputs_by_size[0][0]))
+        for j in range(len(outputs_by_size)):
+
+            target_values, target_policies = list(zip(*targets_by_size[j]))
+            predicted_policies, predicted_values = outputs_by_size[j]
+
+            #print("in loss:", predicted_policies[0])
+
+
+            for i in range(len(targets_by_size[j])):
+                
+                target_policy = torch.tensor(target_policies[i]).to(self.latest_network.device)
+                target_value = torch.tensor(target_values[i]).to(self.latest_network.device)
+
+                predicted_value = predicted_values[i]
+                predicted_policy = predicted_policies[i]
+                predicted_policy = torch.flatten(predicted_policy)
+
+                policy_loss += policy_loss_function(predicted_policy, target_policy)
+                value_loss += value_loss_function(predicted_value, target_value)
+
+
+            
+        # Policy loss is "normalized" by log(num_actions), since cross entropy's expected value grows with log(target_size)
+        if normalize_policy:
+            policy_loss /= math.log(total_size)
+
+        value_loss /= total_size
+        policy_loss /= total_size
+
+
+        combined_loss = policy_loss + value_loss
+
+        invalid_loss = False
+        if torch.any(torch.isnan(value_loss)):
+            print("\nValue Loss is nan.")
+            invalid_loss = True
+
+        if torch.any(torch.isnan(policy_loss)):
+            print("\nPolicy Loss is nan.")
+            invalid_loss = True
+        
+        if invalid_loss:
+            print("\n\n")
+            print(predicted_values)
+            print("\n\n")
+            print(predicted_policies)
+            raise Exception("Nan value found when calculatin loss.")
+
+        return value_loss, policy_loss, combined_loss
+    
 
     def get_output_for_prog_loss(self, inputs, max_iters):
         # get features from n iterations to use as input
@@ -1228,6 +1320,10 @@ class AlphaZero():
         
         for var_name, plot_data in variable_dict.items():
             if len(plot_data) > 0:
+
+                if plot_data == [[],[]]: # !!! hack to handle not doing weight plots
+                    continue
+
                 # some of the plots have sub_plots/lists and some don't
                 if isinstance(plot_data[0], list):
                     for i in range(len(plot_data)):

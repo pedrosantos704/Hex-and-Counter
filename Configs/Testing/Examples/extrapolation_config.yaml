@@ -4,7 +4,7 @@ Test:
 
   Data:
     Variable:
-      changing_agent: 1
+      changing_agent: 2
       changing_parameter:
         name: iterations # checkpoints | iterations | none
         Range:
@@ -13,7 +13,7 @@ Test:
           step: 1
     Runs:
       num_runs: 1
-      num_games_per_run: 100
+      num_games_per_run: 10
 
     Testers:
       new_testers: True
@@ -22,6 +22,10 @@ Test:
 ###
 Agents:
   p1_agent:
+    agent_type: random
+
+
+  p2_agent:
     agent_type: policy
 
     #search_config_path: Configs/Search/test_search_config.yaml
@@ -36,11 +40,10 @@ Agents:
       load_checkpoint: True
 
       Checkpoint:
-        cp_network_name: test_net_load
-        cp_number: 1000
+        cp_network_name: justconv_conv128filters1kernel_init_trans
+        cp_number: 64
 
-  p2_agent:
-    agent_type: random
+
 
 
 

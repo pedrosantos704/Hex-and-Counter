@@ -1,9 +1,10 @@
-from Games.SCS.SCS_Game import SCS_Game
-
 import heapq
+
 import numpy as np
 
 from Agents.Agent import Agent
+from Games.SCS.SCS_Game import SCS_Game
+
 
 class GoalRushAgent(Agent):
     ''' Tries to move each unit towards the closest victory point. 

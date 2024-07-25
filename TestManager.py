@@ -224,11 +224,14 @@ class TestManager():
                 agent_to_change = p2_agent
                 parameter_config = p2_agent_config
 
-            if (changing_parameter == "checkpoints"):
-                if not parameter_config["load_checkpoints"]:
+            if (parameter_name == "checkpoints"):
+
+                if not parameter_config["Network"]["load_checkpoint"]:
                     raise Exception("It is only possible to change network checkpoits if the agent is set to load them.")
                 else:
-                    cp_network_name = parameter_config["Checkpoints"]["cp_network_name"]
+                    cp_network_name = parameter_config["Network"]["Checkpoint"]["cp_network_name"]
+
+
 
             all_data = []
             for value in parameter_range:
@@ -237,7 +240,8 @@ class TestManager():
                 draw_avg = 0
                 if changing_agent != 0:
                     if parameter_name == "checkpoints":
-                        nn, _, _, _ = load_network_checkpoint(cp_network_name, value)
+                        net_data = load_network_checkpoint(self.game_name, cp_network_name, value)
+                        nn = net_data[0]
                         agent_to_change.set_network(nn)
                         print("-------------------\n\nCheckpoint: " + str(value))
                     elif parameter_name == "iterations":

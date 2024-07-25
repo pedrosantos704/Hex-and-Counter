@@ -1,10 +1,10 @@
-import ray
-import random
 import math
 import pickle
-import torch
+import random
 
 import numpy as np
+import ray
+import torch
 
 
 @ray.remote(scheduling_strategy="SPREAD")
@@ -42,7 +42,7 @@ class ReplayBuffer():
         return self.buffer[start_index:last_index]
     
     def get_sample(self, batch_size, replace, probs):
-        if probs == []:
+        if len(probs) == 0:
             args = [len(self.buffer), batch_size, replace]
         else:
             args = [len(self.buffer), batch_size, replace, probs]

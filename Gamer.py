@@ -52,6 +52,7 @@ class Gamer():
         game = self.game_class(*self.game_args)
         keep_subtree = self.search_config["Simulation"]["keep_subtree"]
 
+        print("\n\nin gamer, cache:",cache,"!!!!!!!!\n")
         if cache is None:
             cache = create_cache(self.cache_choice, self.size_estimate)
 
