@@ -94,7 +94,7 @@ class EncoderGnn(nn.Module):
                     #print("pos_enc:",pos_enc.size())
                     x_i = x_i + pos_enc
                 elif self.posicional_encoding == "xy":
-                    print("xypos")
+                    #print("xypos")
                     pos_enc = xyPositionalEncoding(higth=heigth, length=width, d_model=self.embed_dim * self.num_gat_heads)[:heigth*width,:]
                     #print("pos_enc:",pos_enc.size())
                     x_i = x_i + pos_enc

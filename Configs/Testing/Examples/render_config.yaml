@@ -1,6 +1,6 @@
 ###
 Test:
-  test_type: visual # visual | data
+  test_type: data # visual | data
 
   Visual:
     slow: False
@@ -47,7 +47,7 @@ Agents:
       load_checkpoint: True
 
       Checkpoint:
-        cp_network_name: gatEnc_xypos_2
+        cp_network_name: gatEnc_xypos_boards4x5x_2
         cp_number: 64
 
 

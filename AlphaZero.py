@@ -1,6 +1,8 @@
 import bisect
+import collections
 import glob
 import io
+import itertools
 import math
 import os
 import pickle
@@ -866,15 +868,28 @@ class AlphaZero():
             states, targets, indexes = list(zip(*batch))
 
             total_size = len(indexes)
-
+            
+            
             list_by_size = {}
             for i in range(len(states)):
                 #print(len(state[0][0]))
                 size = len(states[i][0][0])
                 if size not in list_by_size:
                     list_by_size[size] = []
-                list_by_size[size].append([states[i], targets[i], indexes[i]])                
-
+                list_by_size[size].append([states[i], targets[i], indexes[i]])  
+            
+            
+            """
+            # divide randomly to debug
+            list_by_size = {}
+            for i in range(len(states)):
+                #print(len(state[0][0]))
+                size = random.randint(0, 1)
+                if size not in list_by_size:
+                    list_by_size[size] = []
+                list_by_size[size].append([states[i], targets[i], indexes[i]])  
+            """            
+            
             
             outputs_by_size = []
             targets_by_size = []
@@ -896,17 +911,43 @@ class AlphaZero():
             #batch_input = torch.cat(states, 0)            
             #outputs = self.latest_network.inference(batch_input, True, train_iterations)
 
-            value_loss, policy_loss, combined_loss = self.calculate_loss(outputs_by_size, targets_by_size, total_size, policy_loss_function, value_loss_function, normalize_policy)
-            
+            value_loss, policy_loss, combined_loss, all_value_loss = self.calculate_loss(outputs_by_size, targets_by_size, total_size, policy_loss_function, value_loss_function, normalize_policy)
+
+
+
             #batch_input = torch.cat(states, 0)
             #batch_size = len(indexes)
             #outputs = self.latest_network.inference(batch_input, True, train_iterations)
-            #value_loss, policy_loss, combined_loss = self.calculate_loss_correct(outputs, targets, batch_size,
+            #value_loss_c, policy_loss_c, combined_loss_c, all_value_loss_c = self.calculate_loss_correct(outputs, targets, batch_size,
             #                                                            policy_loss_function, value_loss_function, normalize_policy)
             
             #print(value_loss==value_loss_c, policy_loss==policy_loss_c, combined_loss==combined_loss_c)
-            # !! compare the tesnors of combined loss
+            #print("losses:", value_loss, value_loss_c,"\n", policy_loss, policy_loss_c,"\n", combined_loss, combined_loss_c, "\n")
+            #print("all value loss c:", all_value_loss_c, "\nall value loss:", all_value_loss)
+            #print("targets:",type(targets_by_size), type(targets), len(targets), len(targets[0]), len(targets_by_size), len(targets_by_size[0]))
+            #predicted_policies, predicted_values = outputs
+            #predicted_policies, predicted_values_1 = outputs_by_size[0]
+            #predicted_policies, predicted_values_2 = outputs_by_size[1]
+            #print("targets:",predicted_values, "\ntargets divided:",predicted_values_1,"\n" ,predicted_values_2)
+
+            """
+            compare = []
+            for i in range(len(targets_by_size)):
+                for j in targets_by_size[i]:
+                    compare += [j in targets]
+
+            for i in targets:
+                aux = []
+                for j in range(len(targets_by_size)):
+                    aux += [i in targets_by_size[j]]ss_c, "\nall value loss:", all_value_loss)
+            #print("targets:",type(targets_by_size), type(targets), len(targets), len(targets[0]), len(targets_by_size), len(targets_by_size[0]))
        
+            compare = []
+            for i in range(len(targets_by_size)
+                compare += [any(aux)]
+            
+            print(all(compare))
+            """
         
         loss = combined_loss
 
@@ -916,6 +957,8 @@ class AlphaZero():
 
         return value_loss.item(), policy_loss.item(), combined_loss.item()
     
+
+   
     def calculate_loss_correct(self, outputs, targets, batch_size, policy_loss_function, value_loss_function, normalize_policy):
         target_values, target_policies = list(zip(*targets))
     
@@ -925,6 +968,7 @@ class AlphaZero():
         value_loss = 0.0
         combined_loss = 0.0
 
+        all_value_loss = []
 
         for i in range(batch_size):
             
@@ -939,7 +983,10 @@ class AlphaZero():
             policy_loss += policy_loss_function(predicted_policy, target_policy)
             value_loss += value_loss_function(predicted_value, target_value)
 
+            all_value_loss += [predicted_value, target_value]
 
+
+        print("correct before norm:", policy_loss, value_loss)
             
         # Policy loss is "normalized" by log(num_actions), since cross entropy's expected value grows with log(target_size)
         target_size = len(targets)
@@ -968,7 +1015,7 @@ class AlphaZero():
             print(predicted_policies)
             raise Exception("Nan value found when calculatin loss.")
 
-        return value_loss, policy_loss, combined_loss
+        return value_loss, policy_loss, combined_loss, all_value_loss
     
     def calculate_loss(self, outputs_by_size, targets_by_size, total_size, policy_loss_function, value_loss_function, normalize_policy):
             
@@ -976,9 +1023,12 @@ class AlphaZero():
         policy_loss = 0.0
         value_loss = 0.0
         combined_loss = 0.0        
+
+        all_value_loss = []
         
         #print("num sizes:", len(outputs_by_size), len(targets_by_size), "total_size", total_size, "lens:",len(targets_by_size[0]),  len(targets_by_size[1]), len(outputs_by_size[0][0]))
         for j in range(len(outputs_by_size)):
+            #print("number of by size", len(outputs_by_size), len(targets_by_size))
 
             target_values, target_policies = list(zip(*targets_by_size[j]))
             predicted_policies, predicted_values = outputs_by_size[j]
@@ -998,8 +1048,85 @@ class AlphaZero():
                 policy_loss += policy_loss_function(predicted_policy, target_policy)
                 value_loss += value_loss_function(predicted_value, target_value)
 
+                all_value_loss += [predicted_value, target_value]
 
+                
+
+            #print("j:", j, policy_loss, value_loss)
+
+
+        #print("total size", total_size, len(outputs_by_size[0][0]), len(targets_by_size[0]), len(outputs_by_size[1][0]), len(targets_by_size[1]))
             
+        #print("loss before norm:",policy_loss, value_loss)
+
+        # Policy loss is "normalized" by log(num_actions), since cross entropy's expected value grows with log(target_size)
+        if normalize_policy:
+            policy_loss /= math.log(total_size)
+
+        value_loss /= total_size
+        policy_loss /= total_size
+
+
+        combined_loss = policy_loss + value_loss
+
+        invalid_loss = False
+        if torch.any(torch.isnan(value_loss)):
+            print("\nValue Loss is nan.")
+            invalid_loss = True
+
+        if torch.any(torch.isnan(policy_loss)):
+            print("\nPolicy Loss is nan.")
+            invalid_loss = True
+        
+        if invalid_loss:
+            print("\n\n")
+            print(predicted_values)
+            print("\n\n")
+            print(predicted_policies)
+            raise Exception("Nan value found when calculatin loss.")
+
+        return value_loss, policy_loss, combined_loss, all_value_loss
+    
+    # !! to do remove this when no longer usefull
+    def calculate_loss_2(self, outputs_by_size, targets_by_size, total_size, policy_loss_function, value_loss_function, normalize_policy):
+            
+                
+        policy_loss = 0.0
+        value_loss = 0.0
+        combined_loss = 0.0    
+
+        
+        #print("num sizes:", len(outputs_by_size), len(targets_by_size), "total_size", total_size, "lens:",len(targets_by_size[0]),  len(targets_by_size[1]), len(outputs_by_size[0][0]))
+        for j in range(len(outputs_by_size)):
+            #print("number of by size", len(outputs_by_size), len(targets_by_size))
+
+            target_values, target_policies = list(zip(*targets_by_size[j]))
+            predicted_policies, predicted_values = outputs_by_size[j]
+
+            #print("in loss:", predicted_policies[0])
+
+
+            for i in range(len(targets_by_size[j])):
+                
+                target_policy = torch.tensor(target_policies[i]).to(self.latest_network.device)
+                target_value = torch.tensor(target_values[i]).to(self.latest_network.device)
+
+                predicted_value = predicted_values[i]
+                predicted_policy = predicted_policies[i]
+                predicted_policy = torch.flatten(predicted_policy)
+
+
+
+            #policy_loss += policy_loss_function(predicted_policies_all, target_policies_all)
+            #value_loss += value_loss_function(predicted_values_all, target_values_all)
+
+            #print("j:", j, policy_loss, value_loss)
+
+
+        #print("total size", total_size, len(outputs_by_size[0][0]), len(targets_by_size[0]), len(outputs_by_size[1][0]), len(targets_by_size[1]))
+            
+        print("loss before norm:",policy_loss, value_loss)
+
         # Policy loss is "normalized" by log(num_actions), since cross entropy's expected value grows with log(target_size)
         if normalize_policy:
             policy_loss /= math.log(total_size)
@@ -1027,6 +1154,8 @@ class AlphaZero():
             raise Exception("Nan value found when calculatin loss.")
 
         return value_loss, policy_loss, combined_loss
+    
+    
     
 
     def get_output_for_prog_loss(self, inputs, max_iters):
