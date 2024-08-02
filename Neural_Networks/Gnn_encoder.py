@@ -75,6 +75,9 @@ class EncoderGnn(nn.Module):
 
         edge_index = hexToEdges(length=width, hight=heigth)
 
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        edge_index = edge_index.to(device)
+
 
         #print(edge_index)
 
