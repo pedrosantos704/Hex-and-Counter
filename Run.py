@@ -143,8 +143,8 @@ def main():
                 #model = TransPosPar(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
                 #model = FullTransformer(in_channels, policy_channels, num_heads=1, num_enc_layers=1, num_dec_layers=1, pre_trans_layer=False, hex=True)
                 #model = TransGNN()
-                #model = Gnn(in_channels, policy_channels)
-                model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
+                model = Gnn(in_channels, policy_channels)
+                #model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
 
 
                 #initialize_parameters(model)

@@ -59,8 +59,13 @@ class Gnn(nn.Module):
 
         edge_index = hexToEdges(length=width, hight=heigth)
 
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = "cuda" if torch.cuda.is_available() else "cpu"
         edge_index = edge_index.to(device)
+
+
+        print(f"x_i is on {x_i.device}")
+        print(f"edge_index is on {edge_index.device}")
+        print(f"GATConv is on {next(self.gat_conv1.parameters()).device}")
 
 
         #print(edge_index)
