@@ -63,7 +63,7 @@ class Gnn(nn.Module):
         edge_index = edge_index.to(device)
 
 
-        print(f"x_i is on {x_i.device}")
+        print(f"x is on {x.device}")
         print(f"edge_index is on {edge_index.device}")
         print(f"GATConv is on {next(self.gat_conv1.parameters()).device}")
 
