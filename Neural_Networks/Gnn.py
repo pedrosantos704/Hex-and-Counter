@@ -59,6 +59,10 @@ class Gnn(nn.Module):
 
         edge_index = hexToEdges(length=width, hight=heigth)
 
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        edge_index = edge_index.to(device)
+
+
         #print(edge_index)
 
         # Process each graph in the batch separately

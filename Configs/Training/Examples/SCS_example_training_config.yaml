@@ -1,11 +1,11 @@
 ###
 Initialization:
-  network_name: gatEnc_xypos_boards5x_2
+  network_name: test
   load_checkpoint: False
 
   Checkpoint:
     cp_network_name: gatEnc_xypos
-    iteration_number: 256
+    iteration_number: 32
     keep_optimizer: True
     keep_scheduler: True
     load_buffer: True
@@ -66,8 +66,8 @@ Plotting:
 
 ###
 Recurrent Options:
-  train_iterations: [8, 8]
-  pred_iterations: [8, 8]
+  train_iterations: [8] #, 8]
+  pred_iterations: [8] #, 8]
   test_iterations: 8
   alpha: 0.0
   

@@ -121,7 +121,7 @@ def main():
             case 1: # SCS_Example
                 
                 game_class = SCS_Game
-                game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]#, ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
+                game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]#, ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
                 game = game_class(*game_args_list[0])
 
                 alpha_config_path="Configs/Training/Examples/SCS_example_training_config.yaml"
