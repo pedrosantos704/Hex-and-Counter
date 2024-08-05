@@ -122,6 +122,7 @@ def main():
                 
                 game_class = SCS_Game
                 game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]#, ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t4.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t5.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t7.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t9.yml"]]
                 game = game_class(*game_args_list[0])
 
                 alpha_config_path="Configs/Training/Examples/SCS_example_training_config.yaml"
