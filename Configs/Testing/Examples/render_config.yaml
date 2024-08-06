@@ -15,7 +15,7 @@ Test:
         name: checkpoints #checkpoints | iterations | none
         Range:
           first: 0
-          last: 256
+          last: 8
           step: 4
     Runs:
       num_runs: 1
@@ -47,8 +47,8 @@ Agents:
       load_checkpoint: True
 
       Checkpoint:
-        cp_network_name: gatEnc_xypos_boards4x5x_2
-        cp_number: 64
+        cp_network_name: gatEnc_xypos_boards5x_2
+        cp_number: 2
 
 
 

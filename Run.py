@@ -54,6 +54,8 @@ from Utils.Caches.KeylessCache import KeylessCache
 from Utils.general_utils import *
 from Utils.Progress_Bars.PrintBar import PrintBar
 
+from ruamel.yaml import YAML
+
 
 def main():
     pid = os.getpid()
@@ -234,8 +236,13 @@ def main():
                 test_config = "Configs/Testing/Examples/render_config.yaml"
                 test_manager = TestManager(game_class, game_args)
                 results = test_manager.test_from_config(test_config_path=test_config)
-                print(results)
-                plot_variable(results)
+                
+                #print(results)
+                yaml_parser = YAML()
+                test_config = load_yaml_config(yaml_parser, test_config)
+                filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "fqswde"
+                print("plot saved:",filename) 
+                plot_variable(results, filename=filename, path="../../../Results_graphs/GAT_trans", show=False)
 
 
 
@@ -543,7 +550,7 @@ def create_solo_state_set(game):
     game.reset_env()
     return state_set
 
-def plot_variable(data):
+def plot_variable(data, filename="plot", path="", show=True):
     x = [item[0] for item in data]  
     y1 = [item[1][0] for item in data]  
     y2 = [item[1][1] for item in data] 
@@ -560,8 +567,13 @@ def plot_variable(data):
     plt.title('Plot')  
     plt.legend()  
 
+    if show:
+        plt.show() 
+    else:
+        full_path = path + "/" + filename
+        plt.savefig(full_path)
+        plt.close()
 
-    plt.show() 
 
 
 

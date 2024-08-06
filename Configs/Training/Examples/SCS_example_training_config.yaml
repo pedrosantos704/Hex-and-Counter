@@ -1,6 +1,6 @@
 ###
 Initialization:
-  network_name: gatEnc_xypos_boards5x_2
+  network_name: test
   load_checkpoint: False
 
   Checkpoint:
