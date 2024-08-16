@@ -1,6 +1,6 @@
 ###
 Initialization:
-  network_name: test
+  network_name: convNet
   load_checkpoint: False
 
   Checkpoint:
@@ -16,14 +16,14 @@ Initialization:
 Running:
   running_mode: sequential
   num_actors: 4
-  early_fill_per_type: 100
+  early_fill_per_type: 25
   early_softmax_moves: 0
   early_softmax_exploration: 0.5
   early_random_exploration: 0.5
   training_steps: 256
 
   Sequential:
-    num_games_per_type_per_step: 16
+    num_games_per_type_per_step: 4
 
   Asynchronous:
     update_delay : 120
@@ -66,8 +66,8 @@ Plotting:
 
 ###
 Recurrent Options:
-  train_iterations: [8] #, 8]
-  pred_iterations: [8] #, 8]
+  train_iterations: [8, 8, 8, 8]
+  pred_iterations: [8, 8, 8, 8]
   test_iterations: 8
   alpha: 0.0
   

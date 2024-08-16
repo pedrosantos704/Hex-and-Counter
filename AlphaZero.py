@@ -515,6 +515,8 @@ class AlphaZero():
         bar = PrintBar(text, total_games, 15)
         for i in range(len(self.game_args_list)):
             game_args = self.game_args_list[i]
+            print(pred_iterations_list)
+            print(len(self.game_args_list))
             iterations = pred_iterations_list[i]
             game_index = i
             actor_list= [Gamer.remote

@@ -123,18 +123,19 @@ def main():
             case 1: # SCS_Example
                 
                 game_class = SCS_Game
-                game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]#, ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]#, ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
                 #game_args_list = [["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t4.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t5.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t7.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t9.yml"]]
+                game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]
                 game = game_class(*game_args_list[0])
 
                 alpha_config_path="Configs/Training/Examples/SCS_example_training_config.yaml"
                 search_config_path="Configs/Search/Examples/SCS_example_search_config.yaml"
 
-                state_set = create_solo_state_set(game)
+                #state_set = create_solo_state_set(game)
 
                 in_channels = game.get_state_shape()[0]
                 policy_channels = game.get_action_space_shape()[0]
-                #model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, hex=True)
+                model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, hex=True)
                 #model = RecurrentNet(in_channels, policy_channels, in_channels, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
                 #model = ResNet(in_channels, policy_channels, num_filters=128, num_blocks=2, kernel_size=1, policy_head="conv", value_head="reduce", hex=True)
                 #model = MLP_Net(out_features=192)
@@ -146,7 +147,7 @@ def main():
                 #model = TransPosPar(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
                 #model = FullTransformer(in_channels, policy_channels, num_heads=1, num_enc_layers=1, num_dec_layers=1, pre_trans_layer=False, hex=True)
                 #model = TransGNN()
-                model = Gnn(in_channels, policy_channels)
+                #model = Gnn(in_channels, policy_channels)
                 #model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
 
 
@@ -240,9 +241,9 @@ def main():
                 #print(results)
                 yaml_parser = YAML()
                 test_config = load_yaml_config(yaml_parser, test_config)
-                filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "fqswde"
+                filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "_test7x7"
                 print("plot saved:",filename) 
-                plot_variable(results, filename=filename, path="../../../Results_graphs/GAT_trans", show=False)
+                plot_variable(results, filename=filename, path="../../../Results_graphs", show=False)
 
 
 
