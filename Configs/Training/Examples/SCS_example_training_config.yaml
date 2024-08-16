@@ -1,6 +1,6 @@
 ###
 Initialization:
-  network_name: convNet
+  network_name: test
   load_checkpoint: False
 
   Checkpoint:

@@ -57,6 +57,5 @@ class ConvNet(nn.Module):
 
         policy = self.policy_head(x)
         value = self.value_head(x)
-        print(policy.size())
 
         return policy, value
