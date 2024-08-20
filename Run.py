@@ -232,7 +232,7 @@ def main():
         match args.testing_preset:
             case 0: # Render Example
                 game_class = SCS_Game
-                game_args = ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]
+                game_args = ["Games/SCS/Game_configs/solo_soldier_config_7.yml"]
 
                 test_config = "Configs/Testing/Examples/render_config.yaml"
                 test_manager = TestManager(game_class, game_args)
@@ -241,7 +241,7 @@ def main():
                 #print(results)
                 yaml_parser = YAML()
                 test_config = load_yaml_config(yaml_parser, test_config)
-                filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "_test5x5"
+                filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "_test7x7"
                 print("plot saved:",filename) 
                 plot_variable(results, filename=filename, path="../../../Results_graphs", show=False)
 

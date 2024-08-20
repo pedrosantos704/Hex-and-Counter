@@ -44,9 +44,9 @@ class Torch_NN():
         self.model = self.model.to(self.device)
     
     def inference(self, state, training, iters_to_do=2, interim_thought=None):
-        seed = 0
-        torch.manual_seed(seed)
-        print("inference", self.model.recurrent, training)
+        #seed = 0
+        #torch.manual_seed(seed)
+        #print("inference", self.model.recurrent, training)
         
         #print("inference, state:",state.size())
 
@@ -56,7 +56,6 @@ class Torch_NN():
         if not self.model.recurrent:
             if not training:
                 with torch.no_grad():
-                    print("here")
                     p,v = self.model(state.to(self.device))
             else:
                 p,v = self.model(state.to(self.device))

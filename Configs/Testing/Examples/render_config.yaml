@@ -47,7 +47,7 @@ Agents:
       load_checkpoint: True
 
       Checkpoint:
-        cp_network_name: convNet
+        cp_network_name: convolution
         cp_number: 2
 
 
