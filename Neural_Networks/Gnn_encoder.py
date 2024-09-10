@@ -62,11 +62,13 @@ class EncoderGnn(nn.Module):
 
 
     def forward(self, x):
-        #print("input:", x.size())
-        heigth, width, batch = x.size()[-2], x.size()[-1], x.size()[0]
+        print("input:", x.size())
+        channels, heigth, width, batch = x.size()[-3], x.size()[-2], x.size()[-1], x.size()[0]
+
+        print(self.in_channels, heigth, width, batch)
 
 
-        x = torch.reshape(x,(-1,self.in_channels, heigth*width))
+        x = torch.reshape(x,(-1, channels, heigth*width))
 
 
         x = torch.permute(x, (0, 2, 1))
@@ -86,7 +88,7 @@ class EncoderGnn(nn.Module):
         for i in range(batch):
 
             x_i = x[i]
-            #print("before gat", x_i.size())
+            print("before gat", x_i.size(), edge_index.size())
             x_i = self.gat_conv1(x_i, edge_index)
             x_i = F.relu(x_i)
 
