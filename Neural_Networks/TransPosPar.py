@@ -6,7 +6,7 @@ import hexagdly
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
-from positional_encodings.torch_encodings import PositionalEncodingPermute2D
+#from positional_encodings.torch_encodings import PositionalEncodingPermute2D
 from torch import nn
 from transformer_encoder import TransformerEncoder
 
@@ -65,9 +65,6 @@ class TransPosPar(nn.Module):
             self.general_module = nn.Sequential(*general_layer_list)
             
 
-        # Positional Encoder
-        self.positionalEncoder = PositionalEncodingPermute2D(in_channels)
-
         
         # Policy Head
         self.policy_head = Conv_PolicyHead(self.embed_dim, policy_channels, hex=hex)
@@ -79,33 +76,35 @@ class TransPosPar(nn.Module):
 
 
     def forward(self, x):
-        heigth, width = x.size()[-2], x.size()[-1]
+        heigth, width, batch = x.size()[-2], x.size()[-1], x.size()[0]
     
-        print("h,w:",heigth, width)
+        print("h,w,b:",heigth, width, batch)
         print("input:",x.size())
 
-        input = x
+        
 
         #test = x.detach().clone()
 
-        pos_x = self.positionalEncoder(x)
+        pos_enc = xyPositionalEncoding(higth=heigth, length=width, d_model=self.in_channels)[:heigth*width,:]
         #print(torch.eq(test, x))
         
         # each word corresponds to a board location
-        x_pos = x + pos_x
-        lstm_x = torch.reshape(x,(-1,self.in_channels, heigth*width))
-        lstm_x = torch.permute(lstm_x, (0, 2, 1))
+        encoder_x = torch.reshape(x,(-1,self.in_channels, heigth*width))
+        encoder_x = torch.permute(encoder_x, (0, 2, 1))
+
+        for i in range(batch):
+            encoder_x[i] = encoder_x[i] + pos_enc
         
-        input_data = x.detach().clone()
+        #input_data = x.detach().clone()
 
-        print("before encoder:", lstm_x.size())
+        print("before encoder:", encoder_x.size())
 
-        lstm_x = self.transformer_encoder(lstm_x)
-        print("after encoder:", lstm_x.size())
+        encoder_x = self.transformer_encoder(encoder_x)
+        print("after encoder:", encoder_x.size())
         
         #print_attention_info(self.transformer_encoder, input_data)
-        lstm_x = torch.permute(lstm_x, (0, 2, 1)) 
-        lstm_x = torch.reshape(lstm_x,(-1,self.in_channels,heigth,width))
+        encoder_x = torch.permute(encoder_x, (0, 2, 1)) 
+        encoder_x = torch.reshape(encoder_x,(-1,self.in_channels,heigth,width))
         
         #print(torch.eq(test, x))
 
@@ -116,10 +115,10 @@ class TransPosPar(nn.Module):
             conv_x = self.general_module(x)
 
             print("after convolution:", conv_x.size())
-            x =  torch.cat((conv_x, lstm_x), 1)
+            x =  torch.cat((conv_x, encoder_x), 1)
             print("after concat:",x.size())
         else:
-            x = lstm_x
+            x = encoder_x
 
 
         policy = self.policy_head(x)
@@ -127,7 +126,51 @@ class TransPosPar(nn.Module):
         return policy, value
     
 
+def xyPositionalEncoding(higth, length, d_model, max_len=12*12):
+    #print("xy pos enc:", math.ceil(d_model/2), math.floor(d_model/2) )
 
+    posicional_encodings_x = positional_encoding(max_len, math.ceil(d_model/2))
+    posicional_encodings_y = positional_encoding(max_len, math.floor(d_model/2))
+    #print(posicional_encodings_x, posicional_encodings_y)
+
+    r = torch.zeros(max_len, d_model)
+    
+    for y in range(higth):
+        for x in range(length):       
+            i = torch.cat((posicional_encodings_x[x,:], posicional_encodings_y[y,:]),0)
+            cell = x + y*length
+            r[cell] = i
+
+    return r
+
+def positional_encoding(max_len, d_model):
+    """
+    Generates a positional encoding matrix for a given maximum length and model dimension.
+    
+    Parameters:
+    max_len (int): The maximum length of the sequences to be encoded.
+    d_model (int): The dimension of the model (number of features).
+
+    Returns:
+    torch.Tensor: A tensor of shape (max_len, d_model) containing positional encodings.
+    """
+    pe = torch.zeros(max_len, d_model)
+    position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+    
+    # Calculate the divisor term for even indices.
+    div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+
+    # Apply sine to even indices (0, 2, 4, ...)
+    pe[:, 0::2] = torch.sin(position * div_term)
+
+    # Apply cosine to odd indices (1, 3, 5, ...)
+    if d_model % 2 == 1:  # If d_model is odd
+        pe[:, 1:d_model:2] = torch.cos(position * div_term[:-1])  # Drop the last element of div_term
+    else:
+        pe[:, 1::2] = torch.cos(position * div_term)
+
+
+    return pe
 
 def extract_self_attention_maps(transformer_encoder, input_data):
     self_attention_maps = []

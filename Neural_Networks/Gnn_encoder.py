@@ -135,6 +135,8 @@ class EncoderGnn(nn.Module):
         value = self.value_head(x)
         
         return policy, value
+    
+
 
 def xyPositionalEncoding(higth, length, d_model, max_len=12*12):
 

@@ -86,28 +86,28 @@ class TransConvNet(nn.Module):
 
         input = x
 
-        test = x.detach().clone()
+        #test = x.detach().clone()
         
         # each word corresponds to a board location
-        x = torch.reshape(x,(-1,self.in_channels, heigth*width))
-        x = torch.permute(x, (0, 2, 1))
+        x_enc = torch.reshape(x,(-1,self.in_channels, heigth*width))
+        x_enc = torch.permute(x_enc, (0, 2, 1))
         
-        input_data = x.detach().clone()
+        #input_data = x.detach().clone()
 
-        print("before encoder:", x.size())
+        print("before encoder:", x_enc.size())
 
-        x = self.transformer_encoder(x)
-        print("after encoder:", x.size())
+        x_enc = self.transformer_encoder(x_enc)
+        print("after encoder:", x_enc.size())
         
         #print_attention_info(self.transformer_encoder, input_data)
-        x = torch.permute(x, (0, 2, 1)) 
-        x = torch.reshape(x,(-1,self.in_channels,heigth,width))
+        x_enc = torch.permute(x_enc, (0, 2, 1)) 
+        x_enc = torch.reshape(x_enc,(-1,self.in_channels,heigth,width))
         
         #print(torch.eq(test, x))
-        print("before recall", x.size())
+        print("before recall", x_enc.size())
 
         if self.recall:
-            x = torch.cat((input, x), 1)
+            x = torch.cat((input, x_enc), 1)
 
         if self.convolution:
             print("before convolution:", x.size())

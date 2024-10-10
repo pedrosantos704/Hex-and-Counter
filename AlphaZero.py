@@ -517,6 +517,7 @@ class AlphaZero():
             game_args = self.game_args_list[i]
             iterations = pred_iterations_list[i]
             game_index = i
+            print(self.network_storage)
             actor_list= [Gamer.remote
                         (
                         self.replay_buffer,
@@ -546,8 +547,9 @@ class AlphaZero():
             while games_played < num_games_per_type:
                 
                 stats, cache = actor_pool.get_next_unordered()
-                avg_hit_ratio += cache.get_hit_ratio()
-                avg_cache_len += cache.length()
+                if cache_choice != "disabled":
+                    avg_hit_ratio += cache.get_hit_ratio()
+                    avg_cache_len += cache.length()
                 stats_list.append(stats)
                 games_played += 1
                 bar.next()

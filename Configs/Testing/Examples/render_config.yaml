@@ -15,7 +15,7 @@ Test:
         name: checkpoints #checkpoints | iterations | none
         Range:
           first: 0
-          last: 150
+          last: 300
           step: 4
     Runs:
       num_runs: 1
@@ -47,8 +47,8 @@ Agents:
       load_checkpoint: True
 
       Checkpoint:
-        cp_network_name: GNNEncoder_none
-        cp_number: 150
+        cp_network_name: EncoderLinear_pos_cat_train5_m
+        cp_number: 300
 
 
 

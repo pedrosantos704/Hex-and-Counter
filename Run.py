@@ -44,6 +44,9 @@ from Neural_Networks.TransPosPar import TransPosPar
 from Neural_Networks.TransGNN.Model import TransGNN
 from Neural_Networks.Gnn import Gnn
 from Neural_Networks.Gnn_encoder import EncoderGnn
+from Neural_Networks.Gcn_encoder import EncoderGcn
+from Neural_Networks.Encoder_linear import EncoderLinear
+from Neural_Networks.Encoder_full_linear import EncoderFullLinear
 from RemoteStorage import RemoteStorage
 from RemoteTester import RemoteTester
 from ReplayBuffer import ReplayBuffer
@@ -123,9 +126,12 @@ def main():
             case 1: # SCS_Example
                 
                 game_class = SCS_Game
-                game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]#, ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]#, ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
                 #game_args_list = [["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t4.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t5.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t7.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t9.yml"]]
                 #game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/change_turns/solo_soldier_config_5_t6.yml"],["Games/SCS/Game_configs/change_turns/solo_soldier_config_5_t8.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/unbalanced_config_5.yml"]]
+                game_args_list = [["Games/SCS/Game_configs/mirrored_config_5.yml"]]
                 game = game_class(*game_args_list[0])
 
                 alpha_config_path="Configs/Training/Examples/SCS_example_training_config.yaml"
@@ -135,24 +141,27 @@ def main():
 
                 in_channels = game.get_state_shape()[0]
                 policy_channels = game.get_action_space_shape()[0]
-                #model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, hex=True)
+                #model = ConvNet(in_channels, policy_channels, kernel_size=3, num_filters=256, hex=True)
                 #model = RecurrentNet(in_channels, policy_channels, in_channels, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
                 #model = ResNet(in_channels, policy_channels, num_filters=128, num_blocks=2, kernel_size=1, policy_head="conv", value_head="reduce", hex=True)
                 #model = MLP_Net(out_features=192)
                 #model = TransformerNet(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, kernel_size=1, recall=False)
-                #model = TransConvNet(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=True)
+                #model = TransConvNet(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=True)
                 #model = TransLSTMNet(in_channels, policy_channels, num_heads=1, num_trans_layers=1, num_LSTM_layers=4,hex=True, recall=False)
                 #model = JustConv(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=False)
                 #model = TransParallel(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
-                #model = TransPosPar(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
+                #model = TransPosPar(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
                 #model = FullTransformer(in_channels, policy_channels, num_heads=1, num_enc_layers=1, num_dec_layers=1, pre_trans_layer=False, hex=True)
                 #model = TransGNN()
                 #model = Gnn(in_channels, policy_channels)
-                #model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding=None)
+                #model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
+                #model = EncoderGcn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
+                model = EncoderLinear(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xyconcat")
+                #model = EncoderFullLinear(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
 
-                alpha_config_path="Configs/Training/mirror_map_training_config.yaml"
-                search_config_path="Configs/Search/mirror_map_search_config.yaml"
-                model = RecurrentNet(in_channels, policy_channels, 256, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="relu", hex=True)
+                #alpha_config_path="Configs/Training/mirror_map_training_config.yaml"
+                #search_config_path="Configs/Search/mirror_map_search_config.yaml"
+                #model = RecurrentNet(in_channels, policy_channels, 256, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="relu", hex=True)
 
 
                 #initialize_parameters(model)
@@ -236,7 +245,9 @@ def main():
         match args.testing_preset:
             case 0: # Render Example
                 game_class = SCS_Game
-                game_args = ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]
+                #game_args = ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]
+                #game_args = ["Games/SCS/Game_configs/unbalanced_config_8.yml"]
+                game_args = ["Games/SCS/Game_configs/mirrored_config_8.yml"]
 
                 test_config = "Configs/Testing/Examples/render_config.yaml"
                 test_manager = TestManager(game_class, game_args)
@@ -245,7 +256,7 @@ def main():
                 #print(results)
                 yaml_parser = YAML()
                 test_config = load_yaml_config(yaml_parser, test_config)
-                filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "_test5x5"
+                filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "_test8x8_m"
                 print("plot saved:",filename) 
                 plot_variable(results, filename=filename, path="../../../Results_graphs", show=False)
 

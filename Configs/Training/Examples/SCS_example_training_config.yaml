@@ -1,11 +1,11 @@
 ###
 Initialization:
-  network_name: clean
-  load_checkpoint: False
+  network_name: EncoderLinear_pos_cat_train5_mdqwre
+  load_checkpoint: True
 
   Checkpoint:
-    cp_network_name: gatEnc_xypos
-    iteration_number: 32
+    cp_network_name: EncoderLinear_pos_cat_train5_m
+    iteration_number: 284
     keep_optimizer: True
     keep_scheduler: True
     load_buffer: True
@@ -20,7 +20,7 @@ Running:
   early_softmax_moves: 0
   early_softmax_exploration: 0.5
   early_random_exploration: 0.5
-  training_steps: 150
+  training_steps: 300 #
 
   Sequential:
     num_games_per_type_per_step: 16 #
@@ -31,14 +31,14 @@ Running:
 
 ###
 Cache:
-  cache_choice: keyless
+  cache_choice: disabled
   max_size: 2000
   keep_updated: False
 
 
 ###
 Saving:
-  save_frequency: 2
+  save_frequency: 4 #
   storage_frequency: 1
   save_buffer: True
 
@@ -66,8 +66,8 @@ Plotting:
 
 ###
 Recurrent Options:
-  train_iterations: [8] #, 8, 8, 8] #
-  pred_iterations: [8] #, 8, 8, 8] #
+  train_iterations: [8, 8] # 8, 8] #
+  pred_iterations: [8, 8] # 8, 8] #
   test_iterations: 8
   alpha: 0.0
   
