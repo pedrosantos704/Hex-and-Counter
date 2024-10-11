@@ -47,7 +47,7 @@ Agents:
       load_checkpoint: True
 
       Checkpoint:
-        cp_network_name: EncoderLinear_pos_cat_train5_m
+        cp_network_name: Convolutional_kernel1
         cp_number: 300
 
 
