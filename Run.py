@@ -179,50 +179,72 @@ def main():
                 
             case 2:
                 game_class = SCS_Game
-                game_args_list = [["Games/SCS/Game_configs/r_unbalanced_config_5.yml"]]
+                game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]#, ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t4.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t5.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t7.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t9.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/change_turns/solo_soldier_config_5_t6.yml"],["Games/SCS/Game_configs/change_turns/solo_soldier_config_5_t8.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/unbalanced_config_5.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/mirrored_config_5.yml"]]
                 game = game_class(*game_args_list[0])
 
-                alpha_config_path="Configs/Training/small_dummy_training_config.yaml"
-                search_config_path="Configs/Search/dummy_search_config.yaml"
+                alpha_config_path="Configs/Training/Examples/SCS_example_training_config.yaml"
+                search_config_path="Configs/Search/Examples/SCS_example_search_config.yaml"
 
-                state_set = create_r_unbalanced_state_set(game)
+                #state_set = create_solo_state_set(game)
 
                 in_channels = game.get_state_shape()[0]
                 policy_channels = game.get_action_space_shape()[0]
-                #model = RecurrentNet(in_channels, policy_channels, 256, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
-                model = ResNet(in_channels, policy_channels, num_filters=256, num_blocks=12, policy_head="conv", value_head="reduce", hex=True)
+                model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, hex=True)
+                #model = TransformerNet(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, kernel_size=1, recall=False)
+                #model = TransConvNet(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=True)
+                #model = TransLSTMNet(in_channels, policy_channels, num_heads=1, num_trans_layers=1, num_LSTM_layers=4,hex=True, recall=False)
+                #model = TransParallel(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
+                #model = TransPosPar(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
+                #model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
+                #model = EncoderLinear(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xyconcat")
+                #model = EncoderFullLinear(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
 
-                initialize_parameters(model)
+                initialize_all(model)
 
                 print("\n")
                 context = start_ray_local(log_to_driver)
-                alpha_zero = AlphaZero(game_class, game_args_list, alpha_config_path, search_config_path, model=model, state_set=state_set)
+                alpha_zero = AlphaZero(game_class, game_args_list, alpha_config_path, search_config_path, model=model) #, state_set=state_set)
                 alpha_zero.run()
 
 
             case 3:
                 game_class = SCS_Game
-                game_args_list = [["Games/SCS/Game_configs/r_unbalanced_config_5.yml"]]
+                game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]#, ["Games/SCS/Game_configs/solo_soldier_config_5.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t4.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t5.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t7.yml"], ["Games/SCS/Game_configs/change_turns/solo_soldier_config_4_t9.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"], ["Games/SCS/Game_configs/solo_soldier_config_4.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/change_turns/solo_soldier_config_5_t6.yml"],["Games/SCS/Game_configs/change_turns/solo_soldier_config_5_t8.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/unbalanced_config_5.yml"]]
+                #game_args_list = [["Games/SCS/Game_configs/mirrored_config_5.yml"]]
                 game = game_class(*game_args_list[0])
 
-                alpha_config_path="Configs/Training/small_test_training_config.yaml"
-                search_config_path="Configs/Search/test_search_config.yaml"
+                alpha_config_path="Configs/Training/Examples/SCS_example_training_config.yaml"
+                search_config_path="Configs/Search/Examples/SCS_example_search_config.yaml"
 
-
-                state_set = create_r_unbalanced_state_set(game)
+                #state_set = create_solo_state_set(game)
 
                 in_channels = game.get_state_shape()[0]
                 policy_channels = game.get_action_space_shape()[0]
-                model = RecurrentNet(in_channels, policy_channels, 256, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
-                #model = ResNet(in_channels, policy_channels, num_filters=256, num_blocks=12, policy_head="conv", value_head="reduce", hex=True)
+                model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, hex=True)
+                #model = TransformerNet(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, kernel_size=1, recall=False)
+                #model = TransConvNet(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=True)
+                #model = TransLSTMNet(in_channels, policy_channels, num_heads=1, num_trans_layers=1, num_LSTM_layers=4,hex=True, recall=False)
+                #model = TransParallel(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
+                #model = TransPosPar(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
+                #model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
+                #model = EncoderLinear(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xyconcat")
+                #model = EncoderFullLinear(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
 
-                initialize_parameters(model)
+                initialize_all(model)
 
                 print("\n")
                 context = start_ray_local(log_to_driver)
-                alpha_zero = AlphaZero(game_class, game_args_list, alpha_config_path, search_config_path, model=model, state_set=state_set)
+                alpha_zero = AlphaZero(game_class, game_args_list, alpha_config_path, search_config_path, model=model) #, state_set=state_set)
                 alpha_zero.run()
-
 
 
             case 4:
@@ -256,7 +278,7 @@ def main():
                 #print(results)
                 yaml_parser = YAML()
                 test_config = load_yaml_config(yaml_parser, test_config)
-                filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "_test8x8_m"
+                filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "_test5x5"
                 print("plot saved:",filename) 
                 plot_variable(results, filename=filename, path="/home/users/clarapais/Desktop/Tese/Results_graphs", show=False)
 
