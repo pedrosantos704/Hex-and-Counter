@@ -141,7 +141,7 @@ def main():
 
                 in_channels = game.get_state_shape()[0]
                 policy_channels = game.get_action_space_shape()[0]
-                model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, hex=True)
+                model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, num_layers=2, hex=True)
                 #model = RecurrentNet(in_channels, policy_channels, in_channels, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
                 #model = ResNet(in_channels, policy_channels, num_filters=128, num_blocks=2, kernel_size=1, policy_head="conv", value_head="reduce", hex=True)
                 #model = MLP_Net(out_features=192)

@@ -20,7 +20,7 @@ Running:
   early_softmax_moves: 0
   early_softmax_exploration: 0.5
   early_random_exploration: 0.5
-  training_steps: 3 #
+  training_steps: 150 #
 
   Sequential:
     num_games_per_type_per_step: 16 #
