@@ -1,6 +1,6 @@
 ###
 Initialization:
-  network_name: test_2
+  network_name: encoder_linear_xy_2
   load_checkpoint: False
 
   Checkpoint:
@@ -20,7 +20,7 @@ Running:
   early_softmax_moves: 0
   early_softmax_exploration: 0.5
   early_random_exploration: 0.5
-  training_steps: 150 #
+  training_steps: 300 #
 
   Sequential:
     num_games_per_type_per_step: 16 #
