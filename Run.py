@@ -588,7 +588,7 @@ def create_solo_state_set(game):
     game.reset_env()
     return state_set
 
-def plot_variable(data, filename="plot", path="", show=True, plot_p2=True):
+def plot_variable(data, filename="plot", path="", show=True, plot_p1=True):
     x = [item[0] for item in data]  
     y1 = [item[1][0] for item in data]  
     y2 = [item[1][1] for item in data] 
@@ -596,10 +596,14 @@ def plot_variable(data, filename="plot", path="", show=True, plot_p2=True):
 
    
     plt.figure(figsize=(10, 6)) 
-    plt.plot(x, y1, color='g', label='P1 win ratio') 
-    if plot_p2:
-        plt.plot(x, y2, color='r', label='P2 win ratio') 
+    
+    plt.plot(x, y2, color='r', label='P2 win ratio') 
+    if plot_p1:
+        plt.plot(x, y1, color='g', label='P1 win ratio') 
         plt.plot(x, y3, color='y', label='Draw')
+
+    plt.legend()
+    
 
 
     if show:
