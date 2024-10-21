@@ -47,7 +47,7 @@ Agents:
       load_checkpoint: True
 
       Checkpoint:
-        cp_network_name: encoder_linear_concat_2
+        cp_network_name: encoder_linear_none
         cp_number: 300
 
 

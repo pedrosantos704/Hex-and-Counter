@@ -1,6 +1,6 @@
 ###
 Initialization:
-  network_name: encoder_linear_xy_2
+  network_name: trans_pos_par
   load_checkpoint: False
 
   Checkpoint:
