@@ -280,7 +280,7 @@ def main():
                 test_config = load_yaml_config(yaml_parser, test_config)
                 filename = test_config["Agents"]["p2_agent"]["Network"]["Checkpoint"]["cp_network_name"] + "_test5x5"
                 print("plot saved:",filename) 
-                plot_variable(results, filename=filename, path="/home/users/clarapais/Desktop/Tese/Results_graphs", show=False)
+                plot_variable(results, filename=filename, path="/home/users/clarapais/Desktop/Tese/Results_graphs", show=False, plot_p2=False)
 
 
 
