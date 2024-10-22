@@ -141,7 +141,7 @@ def main():
 
                 in_channels = game.get_state_shape()[0]
                 policy_channels = game.get_action_space_shape()[0]
-                #model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, num_layers=2, hex=True)
+                model = ConvNet(in_channels, policy_channels, kernel_size=3, num_filters=256, num_layers=2, hex=True)
                 #model = RecurrentNet(in_channels, policy_channels, in_channels, 2, recall=True, policy_head="conv", value_head="reduce", value_activation="tanh", hex=True)
                 #model = ResNet(in_channels, policy_channels, num_filters=128, num_blocks=2, kernel_size=1, policy_head="conv", value_head="reduce", hex=True)
                 #model = MLP_Net(out_features=192)
@@ -150,7 +150,7 @@ def main():
                 #model = TransLSTMNet(in_channels, policy_channels, num_heads=1, num_trans_layers=1, num_LSTM_layers=4,hex=True, recall=False)
                 #model = JustConv(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=False)
                 #model = TransParallel(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
-                model = TransPosPar(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
+                #model = TransPosPar(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
                 #model = FullTransformer(in_channels, policy_channels, num_heads=1, num_enc_layers=1, num_dec_layers=1, pre_trans_layer=False, hex=True)
                 #model = TransGNN()
                 #model = Gnn(in_channels, policy_channels)
@@ -597,10 +597,11 @@ def plot_variable(data, filename="plot", path="", show=True, plot_p2=True):
    
     plt.figure(figsize=(10, 6)) 
     
-    plt.plot(x, y2, color='r', label='P2 win ratio') 
-    if plot_p1:
-        plt.plot(x, y1, color='g', label='P1 win ratio') 
+    plt.plot(x, y2, color='g', label='P2 win ratio') 
+    if plot_p2:
+        plt.plot(x, y1, color='r', label='P1 win ratio') 
         plt.plot(x, y3, color='y', label='Draw')
+    plt.ylim(0, 1)
 
     plt.legend()
     

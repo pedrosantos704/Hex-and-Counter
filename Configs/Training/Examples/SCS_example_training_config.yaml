@@ -1,6 +1,6 @@
 ###
 Initialization:
-  network_name: trans_pos_par
+  network_name: convolutional_kernel3
   load_checkpoint: False
 
   Checkpoint:
