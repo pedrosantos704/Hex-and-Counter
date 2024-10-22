@@ -61,7 +61,6 @@ class EncoderLinear(nn.Module):
 
 
         # Value Head
-        [256, 64, 8 , 1]
         self.value_1 = nn.Linear(self.embed_dim, 256)
         self.value_2 = nn.Linear(256, 64)
         self.value_3 = nn.Linear(64, 8)

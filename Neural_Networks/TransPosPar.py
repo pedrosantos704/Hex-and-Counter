@@ -17,7 +17,7 @@ from .blocks import *
 
 class TransPosPar(nn.Module):
 
-    def __init__(self, in_channels, policy_channels, kernel_size=1, num_filters=256, num_heads=1, num_layers=1, hex=True, convolution=True):
+    def __init__(self, in_channels, policy_channels, kernel_size=1, num_filters=256, num_heads=1, num_layers=1, hex=True, convolution=True, positional_encoding=None):
 
         super().__init__()
         self.recurrent = False
@@ -30,6 +30,8 @@ class TransPosPar(nn.Module):
 
         self.convolution = convolution
 
+        self.positional_encoding = positional_encoding
+
         if self.convolution:
             self.embed_dim = num_filters + in_channels
         else:
@@ -38,9 +40,15 @@ class TransPosPar(nn.Module):
 
         self.conv_input_dim = in_channels
 
+        self.d_model = in_channels
+
+        if self.positional_encoding == "xyconcat":
+            self.d_model = in_channels*2
+            self.embed_dim = num_filters + in_channels*2
+
 
         # !! in_channels must be divisible by num_heads
-        transformer_layer = nn.TransformerEncoderLayer(d_model=in_channels, nhead=num_heads, dim_feedforward=512, batch_first=True)
+        transformer_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=num_heads, dim_feedforward=512, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer=transformer_layer, num_layers=num_layers)
 
 
@@ -85,15 +93,22 @@ class TransPosPar(nn.Module):
 
         #test = x.detach().clone()
 
-        pos_enc = xyPositionalEncoding(higth=heigth, length=width, d_model=self.in_channels)[:heigth*width,:]
         #print(torch.eq(test, x))
+
         
         # each word corresponds to a board location
         encoder_x = torch.reshape(x,(-1,self.in_channels, heigth*width))
         encoder_x = torch.permute(encoder_x, (0, 2, 1))
 
+        pos_enc = xyPositionalEncoding(higth=heigth, length=width, d_model=self.in_channels)[:heigth*width,:]
         for i in range(batch):
-            encoder_x[i] = encoder_x[i] + pos_enc
+            if self.posicional_encoding == "xy":
+                encoder_x[i] = encoder_x[i] + pos_enc
+
+            elif self.positional_encoding == "xyconcat":                
+                encoder_x[i] = torch.cat((encoder_x[i], pos_enc), 1)
+
+            
         
         #input_data = x.detach().clone()
 

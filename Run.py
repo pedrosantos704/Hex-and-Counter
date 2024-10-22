@@ -194,12 +194,12 @@ def main():
 
                 in_channels = game.get_state_shape()[0]
                 policy_channels = game.get_action_space_shape()[0]
-                model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, hex=True)
+                #model = ConvNet(in_channels, policy_channels, kernel_size=1, num_filters=256, hex=True)
                 #model = TransformerNet(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, kernel_size=1, recall=False)
-                #model = TransConvNet(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=True)
+                model = TransConvNet(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, recall=True, positional_encoding="xyconcat")
                 #model = TransLSTMNet(in_channels, policy_channels, num_heads=1, num_trans_layers=1, num_LSTM_layers=4,hex=True, recall=False)
                 #model = TransParallel(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
-                #model = TransPosPar(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
+                #model = TransPosPar(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, positional_encoding="xyconcat")
                 #model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
                 #model = EncoderLinear(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xyconcat")
                 #model = EncoderFullLinear(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")

@@ -16,7 +16,7 @@ from .blocks import *
 
 class TransConvNet(nn.Module):
 
-    def __init__(self, in_channels, policy_channels, kernel_size=1, num_filters=256, num_heads=1, num_layers=1, hex=True, convolution=True, recall=True):
+    def __init__(self, in_channels, policy_channels, kernel_size=1, num_filters=256, num_heads=1, num_layers=1, hex=True, convolution=True, recall=True, positional_encoding=None):
 
         super().__init__()
         self.recurrent = False
@@ -30,6 +30,10 @@ class TransConvNet(nn.Module):
         self.recall = recall
         self.convolution = convolution
 
+        self.positional_encoding = positional_encoding
+
+        self.d_model = in_channels
+
         if self.convolution:
             self.embed_dim = num_filters
         else:
@@ -40,9 +44,13 @@ class TransConvNet(nn.Module):
         else:
             self.conv_input_dim = in_channels
 
+        if self.positional_encoding == "xyconcat":
+            self.conv_input_dim = in_channels*3
+            self.d_model = in_channels*2
+
 
         # !! in_channels must be divisible by num_heads
-        transformer_layer = nn.TransformerEncoderLayer(d_model=in_channels, nhead=num_heads, dim_feedforward=512, batch_first=True)
+        transformer_layer = nn.TransformerEncoderLayer(d_model=self.d_model, nhead=num_heads, dim_feedforward=512, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer=transformer_layer, num_layers=num_layers)
 
 
@@ -79,7 +87,7 @@ class TransConvNet(nn.Module):
 
 
     def forward(self, x):
-        heigth, width = x.size()[-2], x.size()[-1]
+        heigth, width, batch = x.size()[-2], x.size()[-1], x.size()[0]
     
         print("h,w:",heigth, width)
         print("input:",x.size())
@@ -87,12 +95,21 @@ class TransConvNet(nn.Module):
         input = x
 
         #test = x.detach().clone()
+
         
         # each word corresponds to a board location
         x_enc = torch.reshape(x,(-1,self.in_channels, heigth*width))
         x_enc = torch.permute(x_enc, (0, 2, 1))
         
         #input_data = x.detach().clone()
+
+        pos_enc = xyPositionalEncoding(higth=heigth, length=width, d_model=self.in_channels)[:heigth*width,:]
+        for i in range(batch):
+            if self.posicional_encoding == "xy":
+                x_enc[i] = x_enc[i] + pos_enc
+
+            elif self.positional_encoding == "xyconcat":                
+                x_enc[i] = torch.cat((x_enc[i], pos_enc), 1)
 
         print("before encoder:", x_enc.size())
 
@@ -122,7 +139,51 @@ class TransConvNet(nn.Module):
     
 
 
+def xyPositionalEncoding(higth, length, d_model, max_len=12*12):
+    #print("xy pos enc:", math.ceil(d_model/2), math.floor(d_model/2) )
 
+    posicional_encodings_x = positional_encoding(max_len, math.ceil(d_model/2))
+    posicional_encodings_y = positional_encoding(max_len, math.floor(d_model/2))
+    #print(posicional_encodings_x, posicional_encodings_y)
+
+    r = torch.zeros(max_len, d_model)
+    
+    for y in range(higth):
+        for x in range(length):       
+            i = torch.cat((posicional_encodings_x[x,:], posicional_encodings_y[y,:]),0)
+            cell = x + y*length
+            r[cell] = i
+
+    return r
+
+def positional_encoding(max_len, d_model):
+    """
+    Generates a positional encoding matrix for a given maximum length and model dimension.
+    
+    Parameters:
+    max_len (int): The maximum length of the sequences to be encoded.
+    d_model (int): The dimension of the model (number of features).
+
+    Returns:
+    torch.Tensor: A tensor of shape (max_len, d_model) containing positional encodings.
+    """
+    pe = torch.zeros(max_len, d_model)
+    position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+    
+    # Calculate the divisor term for even indices.
+    div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+
+    # Apply sine to even indices (0, 2, 4, ...)
+    pe[:, 0::2] = torch.sin(position * div_term)
+
+    # Apply cosine to odd indices (1, 3, 5, ...)
+    if d_model % 2 == 1:  # If d_model is odd
+        pe[:, 1:d_model:2] = torch.cos(position * div_term[:-1])  # Drop the last element of div_term
+    else:
+        pe[:, 1::2] = torch.cos(position * div_term)
+
+
+    return pe
 
 def extract_self_attention_maps(transformer_encoder, input_data):
     self_attention_maps = []
