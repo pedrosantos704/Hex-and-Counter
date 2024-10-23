@@ -201,7 +201,7 @@ def main():
                 #model = TransParallel(in_channels, policy_channels, num_filters=128, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1)
                 #model = TransPosPar(in_channels, policy_channels, num_filters=256, hex=True, num_heads=1, num_layers=1, convolution=True, kernel_size=1, positional_encoding="xyconcat")
                 #model = EncoderGnn(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
-                model = EncoderLinear(in_channels, policy_channels, num_gat_heads=1, num_trans_heads=1, embed_dim=68, posicional_encoding="xyconcat")
+                model = EncoderLinear(in_channels, policy_channels, num_gat_heads=1, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
                 #model = EncoderFullLinear(in_channels, policy_channels, num_trans_heads=1, embed_dim=68, posicional_encoding="xy")
 
                 initialize_all(model)
