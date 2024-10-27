@@ -1,6 +1,6 @@
 ###
 Initialization:
-  network_name: test
+  network_name: convolutional_kernel3_3
   load_checkpoint: False
 
   Checkpoint:
