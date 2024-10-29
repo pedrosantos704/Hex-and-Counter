@@ -1,6 +1,6 @@
 ###
 Initialization:
-  network_name: convolutional_kernel3_3
+  network_name: EncoderLinear_concat_2
   load_checkpoint: False
 
   Checkpoint:

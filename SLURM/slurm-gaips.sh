@@ -6,9 +6,9 @@
 #SBATCH --time=12:00:00
 
 ###SBATCH --mincpus=1
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=2
 #SBATCH --gres=shard:6
-#SBATCH --mem=16G
+#SBATCH --mem=0G
 
 #SBATCH --job-name=alphazero
 
